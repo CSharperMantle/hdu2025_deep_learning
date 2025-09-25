@@ -5,6 +5,7 @@ description = "Course work for HDU (2025-2026-1)-B050156s-07 \"Deep learning\""
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "numpy>=2.3.3",
     "pydantic>=2.11.9",
 ]
 
