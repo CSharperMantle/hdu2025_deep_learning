@@ -7,7 +7,7 @@
 #show: style-algorithm
 #show: booktabs-default-table-style
 #show: project.with(
-  title: "《深度学习》课程实验报告",
+  title: "《深度学习》作业1",
   subtitle: [基于$k$-近邻分类模型的MNIST图像分类],
   class: "计算机科学英才班",
   department: "卓越学院",
