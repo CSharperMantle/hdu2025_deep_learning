@@ -477,8 +477,8 @@ for i, label in enumerate(LABELS):
     ax[i].set_title(f'Label "{label}"')
     ax[i].set_xticks([0, 1])
     ax[i].set_yticks([0, 1])
-    ax[i].set_xticklabels(["T", "F"])
-    ax[i].set_yticklabels(["T", "F"])
+    ax[i].set_xticklabels(["1", "0"])
+    ax[i].set_yticklabels(["1", "0"])
     ax[i].set_xlabel("Prediction")
     if i == 0:
         ax[i].set_ylabel("Truth")
@@ -487,7 +487,7 @@ plt.tight_layout()
 plt.show()
 
 # %% [markdown]
-# #### 4.3.2. ROC and its AUC when $k=31$
+# #### 4.3.2. P-vs-R curve, ROC, and its AUC when $k=31$
 
 # %%
 K = 31
@@ -524,14 +524,16 @@ for i, label in enumerate(LABELS):
     p = y_true.sum()
     n = y_true.shape[0] - p
     thresholds = np.linspace(-0.001, 1.001, num=N_STEPS, endpoint=True)
-    tpr = np.zeros((N_STEPS,), dtype=np.float32)
-    fpr = np.zeros((N_STEPS,), dtype=np.float32)
+    tpr = []
+    fpr = []
     for j, thr in enumerate(thresholds):
         y_pred = (y_scores >= thr).astype(y_true.dtype)
         tp = np.logical_and(y_pred == 1, y_true == 1).sum()
         fp = np.logical_and(y_pred == 1, y_true == 0).sum()
-        tpr[j] = tp / p if p > 0 else 0.0
-        fpr[j] = fp / n if n > 0 else 0.0
+        tpr.append(tp / p if p > 0 else 0.0)
+        fpr.append(fp / n if n > 0 else 0.0)
+    tpr = np.array(tpr, dtype=np.float32)
+    fpr = np.array(fpr, dtype=np.float32)
 
     print(f"Label {label}:\tAUC = {-np.trapezoid(tpr, fpr):.4f}")
 
@@ -544,6 +546,47 @@ for i, label in enumerate(LABELS):
     ax[i].set_aspect("equal", adjustable="box")
     if i == 0:
         ax[i].set_ylabel("TPR")
+
+plt.tight_layout()
+plt.show()
+
+# %%
+N_STEPS = 101
+
+plt.close("all")
+
+fig, ax = plt.subplots(1, 2, dpi=DPI)
+fig.canvas.header_visible = False
+
+for i, label in enumerate(LABELS):
+    y_true = y_test_bin[label]
+    y_scores = conf_bin[label]
+    p = y_true.sum()
+    n = y_true.shape[0] - p
+    thresholds = np.linspace(-0.001, 1.001, num=N_STEPS, endpoint=True)
+    recall = []
+    prec = []
+    for j, thr in enumerate(thresholds):
+        y_pred = (y_scores >= thr).astype(y_true.dtype)
+        tp = np.logical_and(y_pred == 1, y_true == 1).sum()
+        fp = np.logical_and(y_pred == 1, y_true == 0).sum()
+        tn = np.logical_and(y_pred == 0, y_true == 0).sum()
+        fn = np.logical_and(y_pred == 0, y_true == 1).sum()
+        result = BinPredEvalResult(tp=tp, fp=fp, tn=tn, fn=fn)
+        recall.append(result.recall)
+        prec.append(result.precision)
+    recall = np.array(recall, dtype=np.float32)[:-1]
+    prec = np.array(prec, dtype=np.float32)[:-1]
+
+    ax[i].plot(recall, prec, linestyle="-", color="blue")
+    ax[i].set_title(f'Label "{label}"')
+    ax[i].grid(True, linestyle="--", alpha=0.7)
+    ax[i].set_xlim(left=0.0, right=1.0)
+    ax[i].set_ylim(bottom=0.0, top=1.0)
+    ax[i].set_xlabel("Recall")
+    ax[i].set_aspect("equal", adjustable="box")
+    if i == 0:
+        ax[i].set_ylabel("Precision")
 
 plt.tight_layout()
 plt.show()
