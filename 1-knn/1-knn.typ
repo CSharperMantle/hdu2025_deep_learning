@@ -133,7 +133,7 @@ MNIST数据集为经典的黑白手写数字数据集，包含60000个训练样�
 
 == 二元分类性能分析
 
-观察@figure:bin-class-confusion 与@table:bin-class-perf 可以发现，$k=3$时分类模型能达到较为良好的正负分类效果，其准确率、精确率、召回率、$F_1$分数均较为接近1。
+观察@figure:bin-class-confusion 和@table:bin-class-perf 可以发现，$k=3$时分类模型能达到较为良好的正负分类效果，其准确率、精确率、召回率、$F_1$分数均较为接近1。在$k=31$时测量得到如@figure:bin-class-r-vs-p 所示的精确率--召回率曲线，可以观察得到仅在召回率较为接近1时，精确率才开始下降。
 
 #tbl(
   table(
@@ -153,6 +153,11 @@ MNIST数据集为经典的黑白手写数字数据集，包含60000个训练样�
   image("assets/bin-class-confusion.png", width: 90%),
   caption: [分类“6”与分类“9”的混淆矩阵（$k=3$）],
 ) <figure:bin-class-confusion>
+
+#img(
+  image("assets/bin-class-r-vs-p.png"),
+  caption: [分类“6”与分类“9”的$P$-$R$曲线（$k=31$）],
+) <figure:bin-class-r-vs-p>
 
 观察@table:bin-class-auc 与@figure:bin-class-roc 中的数据可发现，在$k=31$时，该分类模型在两个类别上的ROC曲线均极为贴近左上角，其AUC也均接近1，表明其在这两个标签下均有较好的预测性能。
 
