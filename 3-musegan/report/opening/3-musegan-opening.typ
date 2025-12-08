@@ -1,0 +1,25 @@
+#import "@preview/ouset:0.2.0": underset
+#import "@preview/booktabs:0.0.4": *
+
+#import "../../../template/hdu-report-typst/template/template.typ": *
+
+#show: booktabs-default-table-style
+#show: project.with(
+  title: "《深度学习》期末作业",
+  subtitle: [基于MLP的MNIST与FashionMNIST图像分类],
+  class: "计算机科学英才班",
+  department: "卓越学院",
+  authors: "鲍溶",
+  author_id: "23060827",
+  date: (2025, 12, 07),
+  cover_style: "hdu_report",
+)
+
+#show link: underline
+
+#toc()
+#pagebreak()
+
+= 测试
+
+#lorem(100)
