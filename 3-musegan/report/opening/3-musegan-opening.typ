@@ -6,7 +6,7 @@
 #show: booktabs-default-table-style
 #show: project.with(
   title: "《深度学习》期末作业",
-  subtitle: [基于MLP的MNIST与FashionMNIST图像分类],
+  subtitle: [选题报告：基于 MuseGAN 的 MIDI 片段生成],
   class: "计算机科学英才班",
   department: "卓越学院",
   authors: "鲍溶",
@@ -20,6 +20,18 @@
 #toc()
 #pagebreak()
 
-= 测试
+= 研究背景
+
+#lorem(100)
+
+= 研究意义
+
+#lorem(100)
+
+= 研究内容
+
+#lorem(100)
+
+= 可行性分析与技术难点
 
 #lorem(100)
