@@ -11,7 +11,7 @@
     #set par(leading: 1.5em);
     #text(title, size: font_size.小一, weight: "bold");\
     #{
-      if type(authors) == string {
+      if type(authors) == str {
         text(authors, size: font_size.四号)
       } else if type(authors) == array {
         text(authors.join(" "), size: font_size.四号)
@@ -19,7 +19,7 @@
         authors
       }
     }\
-    #date_format(date: date);
+    #date_format(date);
   ]
 }
 
@@ -72,6 +72,7 @@
     (authors + author_id,)
   }
 
+  set page("a4", numbering: none)
   align(left)[
     #image("assets/hdu.png", width: 60%)
   ]
@@ -86,6 +87,7 @@
         _info_value(department),
         _info_value(class),
         ..authors_listing,
+        date_format(date)
       ),
     )
   ]
