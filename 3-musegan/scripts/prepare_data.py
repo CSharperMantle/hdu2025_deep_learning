@@ -5,7 +5,7 @@
 # Copyright (c) 2023 Cliff Njoroge.
 # Copyright (c) 2025 Rong Bao <webmaster@csmantle.top>.
 #
-# Link: https://github.com/cliffordkleinsr/musegan-pytorch/blob/dev/prepare_data.py
+# Link: https://github.com/cliffordkleinsr/musegan-pytorch/blob/41dc616a00444835aa6b94946577c8ee1e7b5f30/prepare_data.py
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
