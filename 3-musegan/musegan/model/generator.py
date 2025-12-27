@@ -38,35 +38,36 @@ class MuseGenerator(nn.Module):
         n_steps_per_bar: int = 16,
         n_pitches: int = 84,
     ) -> None:
-        super().__init__()
+        super(MuseGenerator, self).__init__()
+
         self.n_tracks = n_tracks
         self.n_bars = n_bars
         self.n_steps_per_bar = n_steps_per_bar
         self.n_pitches = n_pitches
+
         # chords generator
-        self.chords_network = TemporalNetwork(z_dimension, hid_channels, n_bars=n_bars)
+        self.chords_network = TemporalNetwork(z_dimension, hid_channels, n_bars)
         # melody generators
-        self.melody_networks = nn.ModuleDict({})
-        for n in range(self.n_tracks):
-            self.melody_networks.add_module(
-                "melodygen_" + str(n),
-                TemporalNetwork(z_dimension, hid_channels, n_bars=n_bars),
-            )
+        self.melody_networks = nn.ModuleDict(
+            {
+                f"melody_gen_{n}": TemporalNetwork(z_dimension, hid_channels, n_bars)
+                for n in range(n_tracks)
+            }
+        )
         # bar generators
-        self.bar_generators = nn.ModuleDict({})
-        for n in range(self.n_tracks):
-            self.bar_generators.add_module(
-                "bargen_" + str(n),
-                BarGenerator(
+        self.bar_generators = nn.ModuleDict(
+            {
+                f"bar_gen_{n}": BarGenerator(
                     z_dimension,
                     hid_features,
                     hid_channels // 2,
                     out_channels,
                     n_steps_per_bar=n_steps_per_bar,
                     n_pitches=n_pitches,
-                ),
-            )
-        # musegan generator compiled
+                )
+                for n in range(n_tracks)
+            }
+        )
 
     def forward(
         self, chords: t.Tensor, style: t.Tensor, melody: t.Tensor, groove: t.Tensor
@@ -90,7 +91,6 @@ class MuseGenerator(nn.Module):
             Preprocessed input batch.
         """
 
-        # Very important note
         # chords shape: (batch_size, z_dimension)
         # style shape: (batch_size, z_dimension)
         # melody shape: (batch_size, n_tracks, z_dimension)
@@ -103,15 +103,14 @@ class MuseGenerator(nn.Module):
             style_out = style
             for track in range(self.n_tracks):
                 melody_in = melody[:, track, :]
-                melody_out = self.melody_networks["melodygen_" + str(track)](melody_in)[
-                    :, :, bar
-                ]
+                melody_out = self.melody_networks["melody_gen_" + str(track)](
+                    melody_in
+                )[:, :, bar]
                 groove_out = groove[:, track, :]
                 z = t.cat([chord_out, style_out, melody_out, groove_out], dim=1)
-                track_outs.append(self.bar_generators["bargen_" + str(track)](z))
+                track_outs.append(self.bar_generators["bar_gen_" + str(track)](z))
             track_out = t.cat(track_outs, dim=1)
             bar_outs.append(track_out)
         out = t.cat(bar_outs, dim=2)
-        # Very important note
-        # The tensor output shape: (batch_size, n_tracks, n_bars, n_steps_per_bar, n_pitches)
+        # output shape: (batch_size, n_tracks, n_bars, n_steps_per_bar, n_pitches)
         return out

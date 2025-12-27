@@ -37,8 +37,8 @@ class Reshape(nn.Module):
         Dimensions after number of batches.
     """
 
-    def __init__(self, shape: list[int]):
-        super().__init__()
+    def __init__(self, shape: tuple[int, ...]):
+        super(Reshape, self).__init__()
         self.shape = shape
 
     def forward(self, x: t.Tensor) -> t.Tensor:

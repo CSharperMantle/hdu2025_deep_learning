@@ -9,9 +9,16 @@ import os
 import typing as ty
 
 import torch as t
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
+from ..model import MuseCritic, MuseGenerator
 from .criterion import GradientPenalty, WassersteinLoss
+
+
+class TrainerCkpt(ty.TypedDict):
+    epoch: int
+    optimizer: dict
+    state_dict: dict
 
 
 class Trainer:
@@ -19,11 +26,11 @@ class Trainer:
 
     def __init__(
         self,
-        generator,  # generator
-        critic,  # discriminator
-        g_optimizer,  # generator nn.optim
-        c_optimizer,  # discriminator nn.optim
-        ckpt_path,  # checkpoint path
+        generator: MuseGenerator,
+        critic: MuseCritic,
+        g_optimizer: t.optim.Optimizer,  # generator
+        c_optimizer: t.optim.Optimizer,  # discriminator
+        ckpt_path: str,  # checkpoint path
         device: str = "cuda:0",  # torch device
     ) -> None:
         self.generator = generator.to(device)
@@ -36,25 +43,22 @@ class Trainer:
         self.ckpt_path = ckpt_path
         self.device = device
 
-    # Save model
-    def save_ckp(
+    def save_ckpt(
         self,
-        state,
-        checkpoint_path,
+        state: TrainerCkpt,
+        checkpoint_path: str,
     ) -> None:
         """
         state: type dict
         checkpoint_path: path to save checkpoint
         """
-        # save checkpoint data to the path given, checkpoint_path
         t.save(state, checkpoint_path)
 
-    # load model
-    def load_ckp(
+    def load_ckpt(
         self,
-        checkpoint_fpath,
+        checkpoint_fpath: str,
         model,
-        optimizer,
+        optimizer: t.optim.Optimizer,
     ) -> tuple:
         """
         checkpoint_path: path to save checkpoint
@@ -62,7 +66,7 @@ class Trainer:
         optimizer: optimizer we defined in previous training
         """
         # load check point
-        checkpoint = t.load(checkpoint_fpath)
+        checkpoint: TrainerCkpt = t.load(checkpoint_fpath)
         # initialize state_dict from checkpoint to model
         model.load_state_dict(checkpoint["state_dict"])
         # initialize optimizer from checkpoint to optimizer
@@ -79,10 +83,9 @@ class Trainer:
         epochs: int = 500,
         batch_size: int = 64,
         repeat: int = 5,
-        # (deprecated) display_step: int = 10,
         melody_groove: int = 4,
         save_checkpoint: bool = True,
-        model_name: str = "museGAN",
+        model_name: str = "musegan",
     ) -> None:
         os.makedirs(self.ckpt_path, exist_ok=True)
         # Why rand/randn?
@@ -113,11 +116,11 @@ class Trainer:
                     b_crloss = 0
                     b_cploss = 0
                     for _ in range(repeat):
-                        # Very important note
                         # chords shape: (batch_size, z_dimension)
                         # style shape: (batch_size, z_dimension)
                         # melody shape: (batch_size, n_tracks, z_dimension)
                         # groove shape: (batch_size, n_tracks, z_dimension)
+
                         # create random `noises`
                         cords = t.randn(batch_size, 32).to(self.device)
                         style = t.randn(batch_size, 32).to(self.device)
@@ -129,8 +132,7 @@ class Trainer:
                             fake = self.generator(cords, style, melody, groove).detach()
                         # mix `real` and `fake` melody
                         realfake = self.alpha * real + (1.0 - self.alpha) * fake
-                        # get critic's `fake` loss, # get critic's `real` loss,
-                        # get critic's penalty
+                        # get critic's `fake` loss, `real` loss, penalty
                         fake_pred = self.critic(fake)
                         real_pred = self.critic(real)
                         realfake_pred = self.critic(realfake)
@@ -149,7 +151,7 @@ class Trainer:
                         closs.backward(retain_graph=True)
                         # update critic parameters
                         self.c_optimizer.step()
-                        # devide by number of critic updates in the loop (5)
+                        # divide by number of critic updates in the loop (5)
                         b_cfloss += fake_loss.item() / repeat
                         b_crloss += real_loss.item() / repeat
                         b_cploss += 10 * penalty.item() / repeat
@@ -161,25 +163,24 @@ class Trainer:
                     e_closs += b_closs / len(train_loader)
                     # SAVE DISC MODEL STATE DICT
                     if save_checkpoint:
-                        checkpoint = {
+                        checkpoint: TrainerCkpt = {
                             "epoch": epoch + 1,
                             "state_dict": self.critic.state_dict(),
                             "optimizer": self.c_optimizer.state_dict(),
                         }
-                        self.save_ckp(
+                        self.save_ckpt(
                             checkpoint,
                             os.path.join(
-                                self.ckpt_path,
-                                "{}_Net_D-{}.pth".format(model_name, epoch),
+                                self.ckpt_path, f"{model_name}_Net_D-{epoch}.pth"
                             ),
                         )
                     # Train Generator
                     self.g_optimizer.zero_grad()
-                    # Very important note
-                    #   chords shape: (batch_size, z_dimension)
-                    #   style shape: (batch_size, z_dimension)
-                    #   melody shape: (batch_size, n_tracks, z_dimension)
-                    #   groove shape: (batch_size, n_tracks, z_dimension)
+                    # chords shape: (batch_size, z_dimension)
+                    # style shape: (batch_size, z_dimension)
+                    # melody shape: (batch_size, n_tracks, z_dimension)
+                    # groove shape: (batch_size, n_tracks, z_dimension)
+
                     # create random `noises`
                     cords = t.randn(batch_size, 32).to(self.device)
                     style = t.randn(batch_size, 32).to(self.device)
@@ -196,9 +197,12 @@ class Trainer:
                     self.g_optimizer.step()
                     e_gloss += b_gloss.item() / len(train_loader)
                     train_loader.set_postfix(
-                        losses="Epoch: {} | Generator loss: {:.3f} | Critic loss: {:.3f} | fake: {:.3f} | real: {:.3f} | penalty: {:.3f}".format(
-                            epoch, e_gloss, e_closs, e_cfloss, e_crloss, e_cploss
-                        )
+                        epoch=epoch,
+                        generator_loss=f"{e_gloss:.3f}",
+                        critic_loss=f"{e_closs:.3f}",
+                        fake_loss=f"{e_cfloss:.3f}",
+                        real_loss=f"{e_crloss:.3f}",
+                        penalty=f"{e_cploss:.3f}",
                     )
 
             # Append Losses
@@ -209,19 +213,14 @@ class Trainer:
             self.data["cploss"].append(e_cploss)
             # SAVE GEN MODEL STATE DICT
             if save_checkpoint:
-                checkpoint = {
+                checkpoint: TrainerCkpt = {
                     "epoch": epoch + 1,
                     "state_dict": self.generator.state_dict(),
                     "optimizer": self.g_optimizer.state_dict(),
                 }
-                self.save_ckp(
+                self.save_ckpt(
                     checkpoint,
-                    os.path.join(
-                        self.ckpt_path, "{}_Net_G-{}.pth".format(model_name, epoch)
-                    ),
+                    os.path.join(self.ckpt_path, f"{model_name}_Net_G-{epoch}.pth"),
                 )
 
             t.cuda.empty_cache()
-            # (deprecated)if epoch % display_step == 0:
-            # (deprecated)   print(f"Epoch {epoch}/{epochs} | Generator loss: {e_gloss:.3f} | Critic loss: {e_closs:.3f}")
-            # (deprecated)  print(f"(fake: {e_cfloss:.3f}, real: {e_crloss:.3f}, penalty: {e_cploss:.3f})")

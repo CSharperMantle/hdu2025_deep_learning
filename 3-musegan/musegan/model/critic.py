@@ -32,21 +32,23 @@ class MuseCritic(nn.Module):
         n_steps_per_bar: int = 16,
         n_pitches: int = 84,
     ) -> None:
-        super().__init__()
+        super(MuseCritic, self).__init__()
+
         self.n_tracks = n_tracks
         self.n_bars = n_bars
         self.n_steps_per_bar = n_steps_per_bar
         self.n_pitches = n_pitches
+
         in_features = 4 * hid_channels if n_bars == 2 else 12 * hid_channels
         self.net = nn.Sequential(
             # input shape: (batch_size, n_tracks, n_bars, n_steps_per_bar, n_pitches)
-            nn.Conv3d(self.n_tracks, hid_channels, (2, 1, 1), (1, 1, 1), padding=0),
+            nn.Conv3d(n_tracks, hid_channels, (2, 1, 1), (1, 1, 1), padding=0),
             nn.LeakyReLU(0.3, inplace=True),
             # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar, n_pitches)
             nn.Conv3d(
                 hid_channels,
                 hid_channels,
-                (self.n_bars - 1, 1, 1),
+                (n_bars - 1, 1, 1),
                 (1, 1, 1),
                 padding=0,
             ),

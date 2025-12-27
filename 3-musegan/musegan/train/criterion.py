@@ -12,8 +12,8 @@ from torch import nn
 class WassersteinLoss(nn.Module):
     """Wasserstein loss."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self):
+        super(WassersteinLoss, self).__init__()
 
     def forward(self, y_pred: t.Tensor, y_target: t.Tensor) -> t.Tensor:
         """Calculate Wasserstein loss.
@@ -37,8 +37,8 @@ class WassersteinLoss(nn.Module):
 class GradientPenalty(nn.Module):
     """Gradient penalty."""
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self):
+        super(GradientPenalty, self).__init__()
 
     def forward(self, inputs: t.Tensor, outputs: t.Tensor) -> t.Tensor:
         """Calculate gradient penalty.

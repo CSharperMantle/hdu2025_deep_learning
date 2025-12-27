@@ -13,7 +13,6 @@ from torch.utils.data import Dataset
 
 class LPDDataset(Dataset):
     """LPDDataset.
-    Multitrack
 
     Parameters
     ----------

@@ -32,19 +32,21 @@ class BarGenerator(nn.Module):
         hid_features: int = 1024,
         hid_channels: int = 512,
         out_channels: int = 1,
-        n_steps_per_bar=16,
-        n_pitches=84,
+        n_steps_per_bar: int = 16,
+        n_pitches: int = 84,
     ):
-        super().__init__()
+        super(BarGenerator, self).__init__()
+
         self.n_steps_per_bar = n_steps_per_bar
         self.n_pitches = n_pitches
+
         self.net = nn.Sequential(
             # input shape: (batch_size, 4*z_dimension)
             nn.Linear(4 * z_dimension, hid_features),
             nn.BatchNorm1d(hid_features),
             nn.ReLU(inplace=True),
             # output shape: (batch_size, hid_features)
-            Reshape(shape=[hid_channels, hid_features // hid_channels, 1]),
+            Reshape(shape=(hid_channels, hid_features // hid_channels, 1)),
             # output shape: (batch_size, hid_channels, hid_features//hid_channels, 1)
             nn.ConvTranspose2d(
                 hid_channels,
@@ -94,7 +96,7 @@ class BarGenerator(nn.Module):
                 padding=0,
             ),
             # output shape: (batch_size, out_channels, 8*hid_features//hid_channels, n_pitches)
-            Reshape(shape=[1, 1, self.n_steps_per_bar, self.n_pitches]),
+            Reshape(shape=(1, 1, n_steps_per_bar, n_pitches)),
             # output shape: (batch_size, out_channels, 1, n_steps_per_bar, n_pitches)
         )
 
