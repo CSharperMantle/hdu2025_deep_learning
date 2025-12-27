@@ -8,9 +8,9 @@
 # Link: https://github.com/cliffordkleinsr/musegan-pytorch/blob/dev/prepare_data.py
 # SPDX-License-Identifier: Apache-2.0
 
-import typing as ty
 import argparse
 import os
+import typing as ty
 
 import numpy as np
 

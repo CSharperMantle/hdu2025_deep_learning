@@ -31,7 +31,12 @@ name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
 [tool.uv.sources]
 torch = [
-    { index = "pytorch-cpu" }
+    { index = "pytorch-cu130" }
 ]
