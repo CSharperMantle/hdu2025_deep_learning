@@ -22,10 +22,10 @@ class LPDDataset(Dataset):
 
     def __init__(
         self,
-        path: str,
+        path: str
     ) -> None:
         dataset = np.load(path, allow_pickle=True, encoding="bytes")
-        self.data_binary = dataset["arr_0"]
+        self.data_binary = t.from_numpy(dataset["arr_0"]).float()
 
     def __len__(self) -> int:
         """Return the number of samples in dataset."""
@@ -44,7 +44,7 @@ class LPDDataset(Dataset):
         Tensor:
             Sample.
         """
-        return t.from_numpy(self.data_binary[index]).float()
+        return self.data_binary[index]
 
 
 class MidiDataset(Dataset):

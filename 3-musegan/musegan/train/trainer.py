@@ -9,7 +9,8 @@ import os
 import typing as ty
 
 import torch as t
-from tqdm import tqdm
+from torch.utils.data import DataLoader
+from tqdm.notebook import tqdm
 
 from ..model import MuseCritic, MuseGenerator
 from .criterion import GradientPenalty, WassersteinLoss
@@ -37,11 +38,12 @@ class Trainer:
         self.critic = critic.to(device)
         self.g_optimizer = g_optimizer
         self.c_optimizer = c_optimizer
+        self.ckpt_path = ckpt_path
+        self.device = device
+
         self.g_criterion = WassersteinLoss().to(device)
         self.c_criterion = WassersteinLoss().to(device)
         self.c_penalty = GradientPenalty().to(device)
-        self.ckpt_path = ckpt_path
-        self.device = device
 
     def save_ckpt(
         self,
@@ -78,7 +80,7 @@ class Trainer:
     # Training Loop Function
     def train(
         self,
-        dataloader: ty.Iterable,
+        dataloader: DataLoader,
         start_epoch: int = 0,
         epochs: int = 500,
         batch_size: int = 64,
@@ -93,7 +95,7 @@ class Trainer:
         #   generates samples from the normal distribution,
         #   while numpy.random.rand from a uniform distribution (in the range [0,1)).
         # Start training process.
-        self.alpha = t.rand((batch_size, 1, 1, 1, 1)).requires_grad_().to(self.device)
+        self.alpha = t.rand((batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device)
         self.data = {
             "gloss": [],
             "closs": [],
@@ -122,12 +124,12 @@ class Trainer:
                         # groove shape: (batch_size, n_tracks, z_dimension)
 
                         # create random `noises`
-                        cords = t.randn(batch_size, 32).to(self.device)
-                        style = t.randn(batch_size, 32).to(self.device)
-                        melody = t.randn(batch_size, melody_groove, 32).to(self.device)
-                        groove = t.randn(batch_size, melody_groove, 32).to(self.device)
+                        cords = t.randn(batch_size, 32, device=self.device)
+                        style = t.randn(batch_size, 32, device=self.device)
+                        melody = t.randn(batch_size, melody_groove, 32, device=self.device)
+                        groove = t.randn(batch_size, melody_groove, 32, device=self.device)
                         # forward to generator
-                        self.c_optimizer.zero_grad()
+                        self.c_optimizer.zero_grad(set_to_none=True)
                         with t.no_grad():
                             fake = self.generator(cords, style, melody, groove).detach()
                         # mix `real` and `fake` melody
@@ -175,17 +177,17 @@ class Trainer:
                             ),
                         )
                     # Train Generator
-                    self.g_optimizer.zero_grad()
+                    self.g_optimizer.zero_grad(set_to_none=True)
                     # chords shape: (batch_size, z_dimension)
                     # style shape: (batch_size, z_dimension)
                     # melody shape: (batch_size, n_tracks, z_dimension)
                     # groove shape: (batch_size, n_tracks, z_dimension)
 
                     # create random `noises`
-                    cords = t.randn(batch_size, 32).to(self.device)
-                    style = t.randn(batch_size, 32).to(self.device)
-                    melody = t.randn(batch_size, melody_groove, 32).to(self.device)
-                    groove = t.randn(batch_size, melody_groove, 32).to(self.device)
+                    cords = t.randn(batch_size, 32, device=self.device)
+                    style = t.randn(batch_size, 32, device=self.device)
+                    melody = t.randn(batch_size, melody_groove, 32, device=self.device)
+                    groove = t.randn(batch_size, melody_groove, 32, device=self.device)
                     # forward to generator
                     fake = self.generator(cords, style, melody, groove)
                     # forward to critic (to make prediction)
