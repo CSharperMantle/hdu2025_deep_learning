@@ -10,7 +10,8 @@ import typing as ty
 
 import torch as t
 from torch.utils.data import DataLoader
-from tqdm.notebook import tqdm
+from tqdm import tqdm as tqdm_std
+from tqdm.notebook import tqdm as tqdm_notebook
 
 from ..model import MuseCritic, MuseGenerator
 from .criterion import GradientPenalty, WassersteinLoss
@@ -88,6 +89,7 @@ class Trainer:
         melody_groove: int = 4,
         save_checkpoint: bool = True,
         model_name: str = "musegan",
+        tqdm: ty.Union[type[tqdm_std], type[tqdm_notebook]] = tqdm_notebook,
     ) -> None:
         os.makedirs(self.ckpt_path, exist_ok=True)
         # Why rand/randn?
@@ -95,7 +97,9 @@ class Trainer:
         #   generates samples from the normal distribution,
         #   while numpy.random.rand from a uniform distribution (in the range [0,1)).
         # Start training process.
-        self.alpha = t.rand((batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device)
+        self.alpha = t.rand(
+            (batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device
+        )
         self.data = {
             "gloss": [],
             "closs": [],
@@ -126,8 +130,12 @@ class Trainer:
                         # create random `noises`
                         cords = t.randn(batch_size, 32, device=self.device)
                         style = t.randn(batch_size, 32, device=self.device)
-                        melody = t.randn(batch_size, melody_groove, 32, device=self.device)
-                        groove = t.randn(batch_size, melody_groove, 32, device=self.device)
+                        melody = t.randn(
+                            batch_size, melody_groove, 32, device=self.device
+                        )
+                        groove = t.randn(
+                            batch_size, melody_groove, 32, device=self.device
+                        )
                         # forward to generator
                         self.c_optimizer.zero_grad(set_to_none=True)
                         with t.no_grad():
