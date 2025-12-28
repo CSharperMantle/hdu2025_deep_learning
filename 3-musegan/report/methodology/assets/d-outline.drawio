@@ -1,0 +1,55 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/28.2.5 Chrome/138.0.7204.251 Electron/37.6.1 Safari/537.36" version="28.2.5">
+  <diagram name="Page-1" id="5XCuY5mkKZOHDjBze_y0">
+    <mxGraphModel dx="485" dy="289" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="1" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-3" target="CPSIn1PtzpBtCmX-abn6-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-3" value="$$G(z)$$" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ECF2FC;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="310" y="275" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-4" target="CPSIn1PtzpBtCmX-abn6-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-4" value="$$x$$" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8E9E9;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="310" y="395" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-6" value="$$C$$" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="420" y="260" width="50" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-11" target="CPSIn1PtzpBtCmX-abn6-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-11" value="$$\oplus$$" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="370" y="345" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.2;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-3" target="CPSIn1PtzpBtCmX-abn6-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.8;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-4" target="CPSIn1PtzpBtCmX-abn6-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-21" value="Gen?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="490" y="285" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-22" target="CPSIn1PtzpBtCmX-abn6-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-22" value="$$\nabla$$" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="345" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-23" value="True?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="490" y="405" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.2;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-21" target="CPSIn1PtzpBtCmX-abn6-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CPSIn1PtzpBtCmX-abn6-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.8;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;endArrow=none;endFill=0;" edge="1" parent="1" source="CPSIn1PtzpBtCmX-abn6-23" target="CPSIn1PtzpBtCmX-abn6-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

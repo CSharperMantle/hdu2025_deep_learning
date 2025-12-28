@@ -103,12 +103,12 @@ class MuseGenerator(nn.Module):
             style_out = style
             for track in range(self.n_tracks):
                 melody_in = melody[:, track, :]
-                melody_out = self.melody_networks["melody_gen_" + str(track)](
-                    melody_in
-                )[:, :, bar]
+                melody_out = self.melody_networks[f"melody_gen_{track}"](melody_in)[
+                    :, :, bar
+                ]
                 groove_out = groove[:, track, :]
                 z = t.cat([chord_out, style_out, melody_out, groove_out], dim=1)
-                track_outs.append(self.bar_generators["bar_gen_" + str(track)](z))
+                track_outs.append(self.bar_generators[f"bar_gen_{track}"](z))
             track_out = t.cat(track_outs, dim=1)
             bar_outs.append(track_out)
         out = t.cat(bar_outs, dim=2)

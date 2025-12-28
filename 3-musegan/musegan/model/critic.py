@@ -46,11 +46,7 @@ class MuseCritic(nn.Module):
             nn.LeakyReLU(0.3, inplace=True),
             # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar, n_pitches)
             nn.Conv3d(
-                hid_channels,
-                hid_channels,
-                (n_bars - 1, 1, 1),
-                (1, 1, 1),
-                padding=0,
+                hid_channels, hid_channels, (n_bars - 1, 1, 1), (1, 1, 1), padding=0
             ),
             nn.LeakyReLU(0.3, inplace=True),
             # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar, n_pitches)
