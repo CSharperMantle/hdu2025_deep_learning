@@ -1,4 +1,5 @@
 import random
+import os
 
 import musegan
 import numpy as np
@@ -15,9 +16,9 @@ HID_FEATURES = 1152
 HID_CHANNELS = 192
 N_PITCHES = 84
 DEVICE = "cuda:0"
-DATASET_PATH = "prepared/train_x_lpd_5_phr.npz"
-DATASET_REDUCE_FACTOR = 0.3
 CKPT_PATH = "ckpt/"
+CKPT_G_NAME = "musegan_Net_G-4.pth"
+MIDI_PATH = "output/"
 
 t.random.manual_seed(0x0D000721)
 random.seed(0x0D000721)
@@ -52,28 +53,6 @@ critic = musegan.critic.MuseCritic(
 )
 
 
-def seed_worker(_):
-    worker_seed = t.initial_seed() % 2**32
-    np.random.seed(worker_seed)
-    random.seed(worker_seed)
-
-
-dataset = musegan.dataset.LPDDataset(DATASET_PATH)
-dataset_len = int(len(dataset) * DATASET_REDUCE_FACTOR)
-dataset, _ = random_split(
-    dataset,
-    lengths=(dataset_len, len(dataset) - dataset_len),
-    generator=g,
-)
-loader = DataLoader(
-    dataset,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    drop_last=True,
-    worker_init_fn=seed_worker,
-    generator=g,
-)
-
 muse_gen = muse_gen.to(DEVICE)
 g_optimizer = t.optim.Adam(muse_gen.parameters(), lr=0.001, betas=(0.5, 0.9))
 muse_gen = muse_gen.apply(musegan.utils.initialize_weights)
@@ -84,6 +63,18 @@ critic = critic.apply(musegan.utils.initialize_weights)
 trainer = musegan.train.Trainer(
     muse_gen, critic, g_optimizer, c_optimizer, CKPT_PATH, DEVICE
 )
-trainer.train(
-    loader, epochs=10, batch_size=BATCH_SIZE, melody_groove=N_TRACKS, tqdm=tqdm
+muse_gen, _, _ = trainer.load_ckpt(
+    os.path.join(CKPT_PATH, CKPT_G_NAME), muse_gen, g_optimizer
 )
+
+chords = t.rand(BATCH_SIZE, Z_DIM, device=DEVICE)
+style = t.rand(BATCH_SIZE, Z_DIM, device=DEVICE)
+melody = t.rand(BATCH_SIZE, N_TRACKS, Z_DIM, device=DEVICE)
+groove = t.rand(BATCH_SIZE, N_TRACKS, Z_DIM, device=DEVICE)
+with t.inference_mode():
+    muse_gen.eval()
+    preds = muse_gen(chords, style, melody, groove).cpu().numpy()
+    music = musegan.data_utils.postprocess(
+        preds, n_tracks=N_TRACKS, n_bars=N_BARS, n_steps_per_bar=N_STEPS_PER_BAR
+    )
+    music.write("midi", os.path.join(MIDI_PATH, f"{os.path.splitext(CKPT_G_NAME)[0]}.mid"))
