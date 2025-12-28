@@ -82,7 +82,6 @@ class Trainer:
         # return model, optimizer, epoch value, min validation loss
         return model, optimizer, checkpoint["epoch"]
 
-    # Training Loop Function
     def train(
         self,
         dataloader: DataLoader,
@@ -97,25 +96,20 @@ class Trainer:
     ) -> None:
         os.makedirs(self.ckpt_path, exist_ok=True)
 
-        # Pre-allocate alpha tensor once
+        # Pre-allocate tensors for alpha if not already done
         if self.alpha is None:
             self.alpha = t.rand(
                 (batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device
             )
-
-        # Pre-allocate noise tensors to avoid repeated allocation
         noise_tensors = {
             "cords": t.empty(batch_size, 32, device=self.device),
             "style": t.empty(batch_size, 32, device=self.device),
             "melody": t.empty(batch_size, melody_groove, 32, device=self.device),
             "groove": t.empty(batch_size, melody_groove, 32, device=self.device),
         }
-
-        # Pre-allocate target tensors
         ones = t.ones(batch_size, 1, device=self.device)
         neg_ones = -t.ones(batch_size, 1, device=self.device)
 
-        # Data storage for losses
         self.data = {
             "gloss": [],
             "closs": [],
@@ -124,7 +118,6 @@ class Trainer:
             "cploss": [],
         }
 
-        # Start training process
         for epoch in range(start_epoch, epochs):
             e_gloss = 0
             e_cfloss = 0
@@ -136,7 +129,6 @@ class Trainer:
                 for real in train_loader:
                     real = real.to(self.device, non_blocking=True)
 
-                    # Train Critic
                     b_closs = 0
                     b_cfloss = 0
                     b_crloss = 0
@@ -157,7 +149,8 @@ class Trainer:
                                 noise_tensors["style"],
                                 noise_tensors["melody"],
                                 noise_tensors["groove"],
-                            ).detach()
+                            )
+
                         # mix `real` and `fake` melody
                         realfake = self.alpha * real + (1.0 - self.alpha) * fake
                         fake_pred = self.critic(fake)
@@ -167,33 +160,20 @@ class Trainer:
                         real_loss = self.c_criterion(real_pred, ones)
                         penalty = self.c_penalty(realfake, realfake_pred)
                         closs = fake_loss + real_loss + 10 * penalty
-                        # Scale loss and backward
+
                         closs.backward(retain_graph=True)
                         self.c_optimizer.step()
-                        # Accumulate losses
+
                         b_cfloss += fake_loss.item() / repeat
                         b_crloss += real_loss.item() / repeat
                         b_cploss += 10 * penalty.item() / repeat
                         b_closs += closs.item() / repeat
-                    # Append the critic losses
+
                     e_cfloss += b_cfloss / len(train_loader)
                     e_crloss += b_crloss / len(train_loader)
                     e_cploss += b_cploss / len(train_loader)
                     e_closs += b_closs / len(train_loader)
-                    # SAVE DISC MODEL STATE DICT (only at intervals)
-                    if save_checkpoint:
-                        checkpoint: TrainerCkpt = {
-                            "epoch": epoch + 1,
-                            "state_dict": self.critic.state_dict(),
-                            "optimizer": self.c_optimizer.state_dict(),
-                        }
-                        self.save_ckpt(
-                            checkpoint,
-                            os.path.join(
-                                self.ckpt_path, f"{model_name}_Net_D-{epoch}.pth"
-                            ),
-                        )
-                    # Train Generator
+
                     self.g_optimizer.zero_grad(set_to_none=True)
                     fake = self.generator(
                         noise_tensors["cords"],
@@ -205,6 +185,7 @@ class Trainer:
                     b_gloss = self.g_criterion(fake_pred, ones)
                     b_gloss.backward()
                     self.g_optimizer.step()
+
                     e_gloss += b_gloss.item() / len(train_loader)
                     train_loader.set_postfix(
                         epoch=epoch,
@@ -222,14 +203,22 @@ class Trainer:
             self.data["crloss"].append(e_crloss)
             self.data["cploss"].append(e_cploss)
 
-            # SAVE GEN MODEL STATE DICT
             if save_checkpoint:
-                checkpoint: TrainerCkpt = {
+                g_ckpt: TrainerCkpt = {
                     "epoch": epoch + 1,
                     "state_dict": self.generator.state_dict(),
                     "optimizer": self.g_optimizer.state_dict(),
                 }
                 self.save_ckpt(
-                    checkpoint,
+                    g_ckpt,
                     os.path.join(self.ckpt_path, f"{model_name}_Net_G-{epoch}.pth"),
+                )
+                c_ckpt: TrainerCkpt = {
+                    "epoch": epoch + 1,
+                    "state_dict": self.critic.state_dict(),
+                    "optimizer": self.c_optimizer.state_dict(),
+                }
+                self.save_ckpt(
+                    c_ckpt,
+                    os.path.join(self.ckpt_path, f"{model_name}_Net_D-{epoch}.pth"),
                 )
