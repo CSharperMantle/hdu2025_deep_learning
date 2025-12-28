@@ -9,6 +9,7 @@ import os
 import typing as ty
 
 import torch as t
+from torch import nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm as tqdm_std
 from tqdm.notebook import tqdm as tqdm_notebook
@@ -46,6 +47,9 @@ class Trainer:
         self.c_criterion = WassersteinLoss().to(device)
         self.c_penalty = GradientPenalty().to(device)
 
+        # Pre-allocate tensors for alpha to avoid repeated allocation
+        self.alpha = None
+
     def save_ckpt(
         self,
         state: TrainerCkpt,
@@ -60,9 +64,9 @@ class Trainer:
     def load_ckpt(
         self,
         checkpoint_fpath: str,
-        model,
+        model: nn.Module,
         optimizer: t.optim.Optimizer,
-    ) -> tuple:
+    ) -> tuple[nn.Module, t.optim.Optimizer, int]:
         """
         checkpoint_path: path to save checkpoint
         model: model that we want to load checkpoint parameters into
@@ -92,14 +96,26 @@ class Trainer:
         tqdm: ty.Union[type[tqdm_std], type[tqdm_notebook]] = tqdm_notebook,
     ) -> None:
         os.makedirs(self.ckpt_path, exist_ok=True)
-        # Why rand/randn?
-        #   First, as you see from the documentation numpy.random.randn
-        #   generates samples from the normal distribution,
-        #   while numpy.random.rand from a uniform distribution (in the range [0,1)).
-        # Start training process.
-        self.alpha = t.rand(
-            (batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device
-        )
+
+        # Pre-allocate alpha tensor once
+        if self.alpha is None:
+            self.alpha = t.rand(
+                (batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device
+            )
+
+        # Pre-allocate noise tensors to avoid repeated allocation
+        noise_tensors = {
+            "cords": t.empty(batch_size, 32, device=self.device),
+            "style": t.empty(batch_size, 32, device=self.device),
+            "melody": t.empty(batch_size, melody_groove, 32, device=self.device),
+            "groove": t.empty(batch_size, melody_groove, 32, device=self.device),
+        }
+
+        # Pre-allocate target tensors
+        ones = t.ones(batch_size, 1, device=self.device)
+        neg_ones = -t.ones(batch_size, 1, device=self.device)
+
+        # Data storage for losses
         self.data = {
             "gloss": [],
             "closs": [],
@@ -107,61 +123,54 @@ class Trainer:
             "crloss": [],
             "cploss": [],
         }
+
+        # Start training process
         for epoch in range(start_epoch, epochs):
             e_gloss = 0
             e_cfloss = 0
             e_crloss = 0
             e_cploss = 0
             e_closs = 0
+
             with tqdm(dataloader, unit="it") as train_loader:
                 for real in train_loader:
-                    real = real.to(self.device)
+                    real = real.to(self.device, non_blocking=True)
+
                     # Train Critic
                     b_closs = 0
                     b_cfloss = 0
                     b_crloss = 0
                     b_cploss = 0
-                    for _ in range(repeat):
-                        # chords shape: (batch_size, z_dimension)
-                        # style shape: (batch_size, z_dimension)
-                        # melody shape: (batch_size, n_tracks, z_dimension)
-                        # groove shape: (batch_size, n_tracks, z_dimension)
 
-                        # create random `noises`
-                        cords = t.randn(batch_size, 32, device=self.device)
-                        style = t.randn(batch_size, 32, device=self.device)
-                        melody = t.randn(
-                            batch_size, melody_groove, 32, device=self.device
-                        )
-                        groove = t.randn(
-                            batch_size, melody_groove, 32, device=self.device
-                        )
-                        # forward to generator
+                    # Generate noise once and reuse for all critic updates
+                    t.randn(batch_size, 32, out=noise_tensors["cords"])
+                    t.randn(batch_size, 32, out=noise_tensors["style"])
+                    t.randn(batch_size, melody_groove, 32, out=noise_tensors["melody"])
+                    t.randn(batch_size, melody_groove, 32, out=noise_tensors["groove"])
+
+                    for _ in range(repeat):
                         self.c_optimizer.zero_grad(set_to_none=True)
+
                         with t.no_grad():
-                            fake = self.generator(cords, style, melody, groove).detach()
+                            fake = self.generator(
+                                noise_tensors["cords"],
+                                noise_tensors["style"],
+                                noise_tensors["melody"],
+                                noise_tensors["groove"],
+                            ).detach()
                         # mix `real` and `fake` melody
                         realfake = self.alpha * real + (1.0 - self.alpha) * fake
-                        # get critic's `fake` loss, `real` loss, penalty
                         fake_pred = self.critic(fake)
                         real_pred = self.critic(real)
                         realfake_pred = self.critic(realfake)
-                        fake_loss = self.c_criterion(
-                            fake_pred, -t.ones_like(fake_pred)
-                        )  # critic's `fake` loss
-                        real_loss = self.c_criterion(
-                            real_pred, t.ones_like(real_pred)
-                        )  # critic's `real` loss
-                        penalty = self.c_penalty(
-                            realfake, realfake_pred
-                        )  # critic's penalty
-                        # sum up losses
+                        fake_loss = self.c_criterion(fake_pred, neg_ones)
+                        real_loss = self.c_criterion(real_pred, ones)
+                        penalty = self.c_penalty(realfake, realfake_pred)
                         closs = fake_loss + real_loss + 10 * penalty
-                        # retain graph
+                        # Scale loss and backward
                         closs.backward(retain_graph=True)
-                        # update critic parameters
                         self.c_optimizer.step()
-                        # divide by number of critic updates in the loop (5)
+                        # Accumulate losses
                         b_cfloss += fake_loss.item() / repeat
                         b_crloss += real_loss.item() / repeat
                         b_cploss += 10 * penalty.item() / repeat
@@ -171,7 +180,7 @@ class Trainer:
                     e_crloss += b_crloss / len(train_loader)
                     e_cploss += b_cploss / len(train_loader)
                     e_closs += b_closs / len(train_loader)
-                    # SAVE DISC MODEL STATE DICT
+                    # SAVE DISC MODEL STATE DICT (only at intervals)
                     if save_checkpoint:
                         checkpoint: TrainerCkpt = {
                             "epoch": epoch + 1,
@@ -186,24 +195,15 @@ class Trainer:
                         )
                     # Train Generator
                     self.g_optimizer.zero_grad(set_to_none=True)
-                    # chords shape: (batch_size, z_dimension)
-                    # style shape: (batch_size, z_dimension)
-                    # melody shape: (batch_size, n_tracks, z_dimension)
-                    # groove shape: (batch_size, n_tracks, z_dimension)
-
-                    # create random `noises`
-                    cords = t.randn(batch_size, 32, device=self.device)
-                    style = t.randn(batch_size, 32, device=self.device)
-                    melody = t.randn(batch_size, melody_groove, 32, device=self.device)
-                    groove = t.randn(batch_size, melody_groove, 32, device=self.device)
-                    # forward to generator
-                    fake = self.generator(cords, style, melody, groove)
-                    # forward to critic (to make prediction)
+                    fake = self.generator(
+                        noise_tensors["cords"],
+                        noise_tensors["style"],
+                        noise_tensors["melody"],
+                        noise_tensors["groove"],
+                    )
                     fake_pred = self.critic(fake)
-                    # get generator loss (idea is to fool critic)
-                    b_gloss = self.g_criterion(fake_pred, t.ones_like(fake_pred))
+                    b_gloss = self.g_criterion(fake_pred, ones)
                     b_gloss.backward()
-                    # update critic parameters
                     self.g_optimizer.step()
                     e_gloss += b_gloss.item() / len(train_loader)
                     train_loader.set_postfix(
@@ -221,6 +221,7 @@ class Trainer:
             self.data["cfloss"].append(e_cfloss)
             self.data["crloss"].append(e_crloss)
             self.data["cploss"].append(e_cploss)
+
             # SAVE GEN MODEL STATE DICT
             if save_checkpoint:
                 checkpoint: TrainerCkpt = {
@@ -232,5 +233,3 @@ class Trainer:
                     checkpoint,
                     os.path.join(self.ckpt_path, f"{model_name}_Net_G-{epoch}.pth"),
                 )
-
-            t.cuda.empty_cache()
