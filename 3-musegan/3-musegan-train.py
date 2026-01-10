@@ -1,3 +1,5 @@
+import argparse
+import os
 import random
 
 import musegan
@@ -18,6 +20,54 @@ DEVICE = "cuda:0"
 DATASET_PATH = "prepared/train_x_lpd_5_phr.npz"
 DATASET_REDUCE_FACTOR = 0.3
 CKPT_PATH = "ckpt/"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Train MuseGAN model with optional checkpoint resuming"
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume training from a checkpoint",
+    )
+    parser.add_argument(
+        "-e",
+        "--from-epoch",
+        type=int,
+        help="Epoch number to resume from (required if --resume is set). Uses default checkpoint naming pattern.",
+    )
+    parser.add_argument(
+        "-g",
+        "--gen-ckpt",
+        type=str,
+        help="Path to generator checkpoint file (optional, overrides default pattern)",
+    )
+    parser.add_argument(
+        "-d",
+        "--discrim-ckpt",
+        type=str,
+        help="Path to discriminator/critic checkpoint file (optional, overrides default pattern)",
+    )
+    args = parser.parse_args()
+
+    if (
+        args.resume
+        and args.from_epoch is None
+        and (args.gen_ckpt is None or args.discrim_ckpt is None)
+    ):
+        parser.error(
+            "--resume requires either --from-epoch or both --gen-ckpt and --discrim-ckpt"
+        )
+    if args.from_epoch is not None and not args.resume:
+        parser.error("--from-epoch requires --resume flag")
+    if (args.gen_ckpt is not None or args.discrim_ckpt is not None) and not args.resume:
+        parser.error("--gen-ckpt and --discrim-ckpt require --resume flag")
+
+    return args
+
+
+args = parse_args()
 
 t.random.manual_seed(0x0D000721)
 random.seed(0x0D000721)
@@ -84,6 +134,41 @@ critic = critic.apply(musegan.utils.initialize_weights)
 trainer = musegan.train.Trainer(
     muse_gen, critic, g_optimizer, c_optimizer, CKPT_PATH, DEVICE
 )
+
+start_epoch = 0
+if args.resume:
+    print(f"Resuming training from epoch {args.from_epoch}")
+    gen_ckpt_path = (
+        args.gen_ckpt
+        if args.gen_ckpt
+        else os.path.join(CKPT_PATH, f"musegan_Net_G-{args.from_epoch}.pth")
+    )
+    discrim_ckpt_path = (
+        args.discrim_ckpt
+        if args.discrim_ckpt
+        else os.path.join(CKPT_PATH, f"musegan_Net_D-{args.from_epoch}.pth")
+    )
+
+    muse_gen, g_optimizer, gen_epoch = trainer.load_ckpt(
+        gen_ckpt_path, muse_gen, g_optimizer
+    )
+    critic, c_optimizer, discrim_epoch = trainer.load_ckpt(
+        discrim_ckpt_path, critic, c_optimizer
+    )
+
+    if gen_epoch != discrim_epoch:
+        print(
+            f"Warning: Generator epoch ({gen_epoch}) and discriminator epoch ({discrim_epoch}) don't match"
+        )
+
+    start_epoch = gen_epoch
+    print(f"Starting from epoch {start_epoch}")
+
 trainer.train(
-    loader, epochs=10, batch_size=BATCH_SIZE, melody_groove=N_TRACKS, tqdm=tqdm
+    loader,
+    start_epoch=start_epoch,
+    epochs=10,
+    batch_size=BATCH_SIZE,
+    melody_groove=N_TRACKS,
+    tqdm=tqdm,
 )
