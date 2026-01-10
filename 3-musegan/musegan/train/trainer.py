@@ -118,7 +118,7 @@ class Trainer:
             "cploss": [],
         }
 
-        for epoch in range(start_epoch, epochs):
+        for epoch in range(start_epoch, start_epoch + epochs):
             e_gloss = 0
             e_cfloss = 0
             e_crloss = 0
