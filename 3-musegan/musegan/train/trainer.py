@@ -47,9 +47,6 @@ class Trainer:
         self.c_criterion = WassersteinLoss().to(device)
         self.c_penalty = GradientPenalty().to(device)
 
-        # Pre-allocate tensors for alpha to avoid repeated allocation
-        self.alpha = None
-
     def save_ckpt(
         self,
         state: TrainerCkpt,
@@ -96,11 +93,7 @@ class Trainer:
     ) -> None:
         os.makedirs(self.ckpt_path, exist_ok=True)
 
-        # Pre-allocate tensors for alpha if not already done
-        if self.alpha is None:
-            self.alpha = t.rand(
-                (batch_size, 1, 1, 1, 1), requires_grad=True, device=self.device
-            )
+        # Pre-allocate noise tensors
         noise_tensors = {
             "cords": t.empty(batch_size, 32, device=self.device),
             "style": t.empty(batch_size, 32, device=self.device),
@@ -134,15 +127,21 @@ class Trainer:
                     b_crloss = 0
                     b_cploss = 0
 
-                    # Generate noise once and reuse for all critic updates
-                    t.randn(batch_size, 32, out=noise_tensors["cords"])
-                    t.randn(batch_size, 32, out=noise_tensors["style"])
-                    t.randn(batch_size, melody_groove, 32, out=noise_tensors["melody"])
-                    t.randn(batch_size, melody_groove, 32, out=noise_tensors["groove"])
-
                     for _ in range(repeat):
-                        self.c_optimizer.zero_grad(set_to_none=True)
+                        epsilon = t.rand(
+                            (batch_size, *(1,) * (real.ndim - 1)), device=self.device
+                        )
+                        # Generate noise once and reuse for all critic updates
+                        t.randn(batch_size, 32, out=noise_tensors["cords"])
+                        t.randn(batch_size, 32, out=noise_tensors["style"])
+                        t.randn(
+                            batch_size, melody_groove, 32, out=noise_tensors["melody"]
+                        )
+                        t.randn(
+                            batch_size, melody_groove, 32, out=noise_tensors["groove"]
+                        )
 
+                        self.c_optimizer.zero_grad(set_to_none=True)
                         with t.no_grad():
                             fake = self.generator(
                                 noise_tensors["cords"],
@@ -151,22 +150,25 @@ class Trainer:
                                 noise_tensors["groove"],
                             )
 
-                        # mix `real` and `fake` melody
-                        realfake = self.alpha * real + (1.0 - self.alpha) * fake
+                        realfake = (
+                            (epsilon * real + (1.0 - epsilon) * fake)
+                            .detach()
+                            .requires_grad_(True)
+                        )
                         fake_pred = self.critic(fake)
                         real_pred = self.critic(real)
                         realfake_pred = self.critic(realfake)
+
                         fake_loss = self.c_criterion(fake_pred, neg_ones)
                         real_loss = self.c_criterion(real_pred, ones)
-                        penalty = self.c_penalty(realfake, realfake_pred)
-                        closs = fake_loss + real_loss + 10 * penalty
-
-                        closs.backward(retain_graph=True)
+                        grad_penalty = self.c_penalty(realfake, realfake_pred)
+                        closs = fake_loss + real_loss + 10 * grad_penalty
+                        closs.backward()
                         self.c_optimizer.step()
 
                         b_cfloss += fake_loss.item() / repeat
                         b_crloss += real_loss.item() / repeat
-                        b_cploss += 10 * penalty.item() / repeat
+                        b_cploss += 10 * grad_penalty.item() / repeat
                         b_closs += closs.item() / repeat
 
                     e_cfloss += b_cfloss / len(train_loader)
@@ -182,11 +184,11 @@ class Trainer:
                         noise_tensors["groove"],
                     )
                     fake_pred = self.critic(fake)
-                    b_gloss = self.g_criterion(fake_pred, ones)
-                    b_gloss.backward()
+                    gloss = self.g_criterion(fake_pred, ones)
+                    gloss.backward()
                     self.g_optimizer.step()
 
-                    e_gloss += b_gloss.item() / len(train_loader)
+                    e_gloss += gloss.item() / len(train_loader)
                     train_loader.set_postfix(
                         epoch=epoch,
                         generator_loss=f"{e_gloss:.3f}",
