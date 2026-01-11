@@ -93,6 +93,9 @@ class Trainer:
     ) -> None:
         os.makedirs(self.ckpt_path, exist_ok=True)
 
+        self.generator.train()
+        self.critic.train()
+
         # Pre-allocate noise tensors
         noise_tensors = {
             "cords": t.empty(batch_size, 32, device=self.device),
@@ -126,6 +129,10 @@ class Trainer:
                     b_cfloss = 0
                     b_crloss = 0
                     b_cploss = 0
+
+                    # Freeze generator parameters for critic update
+                    for p in self.generator.parameters():
+                        p.requires_grad_(False)
 
                     for _ in range(repeat):
                         epsilon = t.rand(
@@ -171,12 +178,28 @@ class Trainer:
                         b_cploss += 10 * grad_penalty.item() / repeat
                         b_closs += closs.item() / repeat
 
+                    # Unfreeze generator parameters
+                    for p in self.generator.parameters():
+                        p.requires_grad_(True)
+
                     e_cfloss += b_cfloss / len(train_loader)
                     e_crloss += b_crloss / len(train_loader)
                     e_cploss += b_cploss / len(train_loader)
                     e_closs += b_closs / len(train_loader)
 
+                    # Freeze critic parameters for generator update
+                    for p in self.critic.parameters():
+                        p.requires_grad_(False)
                     self.g_optimizer.zero_grad(set_to_none=True)
+                    # Resample noise for generator update
+                    t.randn(batch_size, 32, out=noise_tensors["cords"])
+                    t.randn(batch_size, 32, out=noise_tensors["style"])
+                    t.randn(
+                        batch_size, melody_groove, 32, out=noise_tensors["melody"]
+                    )
+                    t.randn(
+                        batch_size, melody_groove, 32, out=noise_tensors["groove"]
+                    )
                     fake = self.generator(
                         noise_tensors["cords"],
                         noise_tensors["style"],
@@ -187,6 +210,9 @@ class Trainer:
                     gloss = self.g_criterion(fake_pred, ones)
                     gloss.backward()
                     self.g_optimizer.step()
+                    # Unfreeze critic parameters
+                    for p in self.critic.parameters():
+                        p.requires_grad_(True)
 
                     e_gloss += gloss.item() / len(train_loader)
                     train_loader.set_postfix(
