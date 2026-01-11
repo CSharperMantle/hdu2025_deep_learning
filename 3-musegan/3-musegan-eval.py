@@ -54,11 +54,11 @@ critic = musegan.critic.MuseCritic(
 
 
 muse_gen = muse_gen.to(DEVICE)
-g_optimizer = t.optim.Adam(muse_gen.parameters(), lr=0.001, betas=(0.5, 0.9))
+g_optimizer = t.optim.Adam(muse_gen.parameters(), lr=0.0001, betas=(0.2, 0.9))
 muse_gen = muse_gen.apply(musegan.utils.initialize_weights)
 
 critic = critic.to(DEVICE)
-c_optimizer = t.optim.Adam(critic.parameters(), lr=0.001, betas=(0.5, 0.9))
+c_optimizer = t.optim.Adam(critic.parameters(), lr=0.0001, betas=(0.2, 0.9))
 critic = critic.apply(musegan.utils.initialize_weights)
 trainer = musegan.train.Trainer(
     muse_gen, critic, g_optimizer, c_optimizer, CKPT_PATH, DEVICE
