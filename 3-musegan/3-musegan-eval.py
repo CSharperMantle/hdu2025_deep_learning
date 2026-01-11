@@ -17,7 +17,7 @@ HID_CHANNELS = 192
 N_PITCHES = 84
 DEVICE = "cuda:0"
 CKPT_PATH = "ckpt/"
-CKPT_G_NAME = "musegan_Net_G-4.pth"
+CKPT_G_NAME = "musegan_Net_G-24.pth"
 MIDI_PATH = "output/"
 
 t.random.manual_seed(0x0D000721)

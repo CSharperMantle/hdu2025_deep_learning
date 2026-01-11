@@ -1,7 +1,8 @@
 *.pdf
 3-musegan/prepared/
 3-musegan/ckpt/
-3-musegan/output/
+3-musegan/output/*
+!3-musegan/output/train.*
 **/assets/.$*.bkp
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,jupyternotebooks

@@ -1,0 +1,139 @@
+@article{dong2018musegan,
+    title={MuseGAN: Multi-track Sequential Generative Adversarial Networks for Symbolic Music Generation and Accompaniment},
+    volume={32},
+    url={https://ojs.aaai.org/index.php/AAAI/article/view/11312},
+    DOI={10.1609/aaai.v32i1.11312},
+    abstractNote={ <p> Generating music has a few notable differences from generating images and videos. First, music is an art of time, necessitating a temporal model. Second, music is usually composed of multiple instruments/tracks with their own temporal dynamics, but collectively they unfold over time interdependently. Lastly, musical notes are often grouped into chords, arpeggios or melodies in polyphonic music, and thereby introducing a chronological ordering of notes is not naturally suitable. In this paper, we propose three models for symbolic multi-track music generation under the framework of generative adversarial networks (GANs). The three models, which differ in the underlying assumptions and accordingly the network architectures, are referred to as the jamming model, the composer model and the hybrid model. We trained the proposed models on a dataset of over one hundred thousand bars of rock music and applied them to generate piano-rolls of five tracks: bass, drums, guitar, piano and strings. A few intra-track and inter-track objective metrics are also proposed to evaluate the generative results, in addition to a subjective user study. We show that our models can generate coherent music of four bars right from scratch (i.e. without human inputs). We also extend our models to human-AI cooperative music generation: given a specific track composed by human, we can generate four additional tracks to accompany it. All code, the dataset and the rendered audio samples are available at https://salu133445.github.io/musegan/. </p> },
+    number={1},
+    journal={Proceedings of the AAAI Conference on Artificial Intelligence},
+    author={Dong, Hao-Wen and Hsiao, Wen-Yi and Yang, Li-Chia and Yang, Yi-Hsuan},
+    year={2018},
+    month={Apr.}
+}
+
+@misc{ramesh2021zeroshot,
+    title={Zero-Shot Text-to-Image Generation},
+    author={Aditya Ramesh and Mikhail Pavlov and Gabriel Goh and Scott Gray and Chelsea Voss and Alec Radford and Mark Chen and Ilya Sutskever},
+    year={2021},
+    eprint={2102.12092},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    url={https://arxiv.org/abs/2102.12092},
+}
+
+@misc{xu2017attngan,
+    title={AttnGAN: Fine-Grained Text to Image Generation with Attentional Generative Adversarial Networks},
+    author={Tao Xu and Pengchuan Zhang and Qiuyuan Huang and Han Zhang and Zhe Gan and Xiaolei Huang and Xiaodong He},
+    year={2017},
+    eprint={1711.10485},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    url={https://arxiv.org/abs/1711.10485},
+}
+
+@misc{chen2020videogan,
+    title={Generative Adversarial Networks for Video-to-Video Domain Adaptation},
+    author={Jiawei Chen and Yuexiang Li and Kai Ma and Yefeng Zheng},
+    year={2020},
+    eprint={2004.08058},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    url={https://arxiv.org/abs/2004.08058},
+}
+
+@misc{yang2017midinet,
+    title={MidiNet: A Convolutional Generative Adversarial Network for Symbolic-domain Music Generation},
+    author={Li-Chia Yang and Szu-Yu Chou and Yi-Hsuan Yang},
+    year={2017},
+    eprint={1703.10847},
+    archivePrefix={arXiv},
+    primaryClass={cs.SD},
+    url={https://arxiv.org/abs/1703.10847},
+}
+
+@inproceedings{harte2006tonaldistance,
+    author = {Harte, Christopher and Sandler, Mark and Gasser, Martin},
+    title = {Detecting harmonic change in musical audio},
+    year = {2006},
+    isbn = {1595935010},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/1178723.1178727},
+    doi = {10.1145/1178723.1178727},
+    abstract = {We propose a novel method for detecting changes in the harmonic content of musical audio signals. Our method uses a new model for Equal Tempered Pitch Class Space. This model maps 12-bin chroma vectors to the interior space of a 6-D polytope; pitch classes are mapped onto the vertices of this polytope. Close harmonic relations such as fifths and thirds appear as small Euclidian distances. We calculate the Euclidian distance between analysis frames n +1 and n -1 to develop a harmonic change measure for frame n. A peak in the detection function denotes a transition from one harmonically stable region to another. Initial experiments show that the algorithm can successfully detect harmonic changes such as chord boundaries in polyphonic audio recordings. Initial experiments show that the algorithm can successfully detect harmonic changes such as chord boundaries in polyphonic audio recordings.},
+    booktitle = {Proceedings of the 1st ACM Workshop on Audio and Music Computing Multimedia},
+    pages = {21–26},
+    numpages = {6},
+    keywords = {segmentation, pitch space, music, harmonic, audio},
+    location = {Santa Barbara, California, USA},
+    series = {AMCMM '06}
+}
+
+@book{raffel2016million,
+    title={Learning-based methods for comparing sequences, with applications to audio-to-midi alignment and matching},
+    author={Raffel, Colin},
+    year={2016},
+    publisher={Columbia University}
+}
+
+@software{abadi2015tensorflow,
+    author = {Abadi, Martín and Agarwal, Ashish and Barham, Paul and Brevdo, Eugene and Chen, Zhifeng and Citro, Craig and Corrado, Greg S. and Davis, Andy and Dean, Jeffrey and Devin, Matthieu and Ghemawat, Sanjay and Goodfellow, Ian and Harp, Andrew and Irving, Geoffrey and Isard, Michael and Jozefowicz, Rafal and Jia, Yangqing and Kaiser, Lukasz and Kudlur, Manjunath and Levenberg, Josh and Mané, Dan and Schuster, Mike and Monga, Rajat and Moore, Sherry and Murray, Derek and Olah, Chris and Shlens, Jonathon and Steiner, Benoit and Sutskever, Ilya and Talwar, Kunal and Tucker, Paul and Vanhoucke, Vincent and Vasudevan, Vijay and Viégas, Fernanda and Vinyals, Oriol and Warden, Pete and Wattenberg, Martin and Wicke, Martin and Yu, Yuan and Zheng, Xiaoqiang},
+    doi = {10.5281/zenodo.4724125},
+    license = {Apache-2.0},
+    month = nov,
+    title = {{TensorFlow, Large-scale machine learning on heterogeneous systems}},
+    year = {2015}
+}
+
+@incollection{paszke2019pytorch,
+    title = {PyTorch: An Imperative Style, High-Performance Deep Learning Library},
+    author = {Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+    booktitle = {Advances in Neural Information Processing Systems 32},
+    editor = {H. Wallach and H. Larochelle and A. Beygelzimer and F. d\textquotesingle Alch\'{e}-Buc and E. Fox and R. Garnett},
+    pages = {8024--8035},
+    year = {2019},
+    publisher = {Curran Associates, Inc.},
+    url = {http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf}
+}
+
+@inproceedings{ansel2024pytorch,
+    author = {Ansel, Jason and Yang, Edward and He, Horace and Gimelshein, Natalia and Jain, Animesh and Voznesensky, Michael and Bao, Bin and Bell, Peter and Berard, David and Burovski, Evgeni and Chauhan, Geeta and Chourdia, Anjali and Constable, Will and Desmaison, Alban and DeVito, Zachary and Ellison, Elias and Feng, Will and Gong, Jiong and Gschwind, Michael and Hirsh, Brian and Huang, Sherlock and Kalambarkar, Kshiteej and Kirsch, Laurent and Lazos, Michael and Lezcano, Mario and Liang, Yanbo and Liang, Jason and Lu, Yinghai and Luk, CK and Maher, Bert and Pan, Yunjie and Puhrsch, Christian and Reso, Matthias and Saroufim, Mark and Siraichi, Marcos Yukio and Suk, Helen and Suo, Michael and Tillet, Phil and Wang, Eikan and Wang, Xiaodong and Wen, William and Zhang, Shunting and Zhao, Xu and Zhou, Keren and Zou, Richard and Mathews, Ajit and Chanan, Gregory and Wu, Peng and Chintala, Soumith},
+    booktitle = {29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 (ASPLOS '24)},
+    doi = {10.1145/3620665.3640366},
+    month = apr,
+    publisher = {ACM},
+    title = {{PyTorch 2: Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation}},
+    url = {https://docs.pytorch.org/assets/pytorch2-2.pdf},
+    year = {2024}
+}
+
+@online{kanametov2021musegan,
+    author = {Kanametov, Azamat},
+    title  = {{musegan}: A Pytorch implementation of {MuseGAN}},
+    url    = {https://github.com/akanametov/musegan},
+    year   = {2021},
+}
+
+@online{nvidia2013tesla,
+    title = {NVIDIA Tesla GPU Accelerators},
+    organization = {NVIDIA},
+    url = {https://www.nvidia.com/content/PDF/kepler/Tesla-KSeries-Overview-LR.pdf},
+    year = {2013},
+}
+
+@software{yep2020torchinfo,
+    author = {Yep, Tyler},
+    license = {MIT},
+    month = mar,
+    title = {{torchinfo}},
+    url = {https://github.com/TylerYep/torchinfo},
+    year = {2020}
+}
+
+@inproceedings{gulrajani2017wgangp,
+  title={Improved Training of Wasserstein GANs},
+  author={Ishaan Gulrajani and Faruk Ahmed and Mart{\'i}n Arjovsky and Vincent Dumoulin and Aaron C. Courville},
+  booktitle={Neural Information Processing Systems},
+  year={2017},
+  url={https://api.semanticscholar.org/CorpusID:10894094}
+}
